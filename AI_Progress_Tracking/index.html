@@ -5,10 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f4f1ea" />
     <title>SiteFlow — Construction Progress</title>
+    <script>if (location.hash.startsWith('#/upload')) document.documentElement.classList.add('qr-upload-boot');</script>
+    <style>
+      .qr-boot { display:none; }
+      .qr-upload-boot .qr-boot { min-height:100vh; display:grid; place-content:center; justify-items:center; gap:10px; padding:24px; box-sizing:border-box; background:#f4f1ea; color:#17231d; font-family:system-ui,sans-serif; text-align:center; }
+      .qr-upload-boot .qr-boot-mark { width:48px; height:48px; display:grid; place-items:center; border-radius:13px; background:#126447; color:white; font-size:22px; font-weight:800; }
+      .qr-upload-boot .qr-boot strong { font-size:18px; }
+      .qr-upload-boot .qr-boot span { color:#69736d; font-size:13px; }
+      .qr-upload-boot .qr-boot i { width:28px; height:28px; margin-top:8px; border:3px solid #12644733; border-top-color:#126447; border-radius:50%; animation:qr-spin .8s linear infinite; }
+      @keyframes qr-spin { to { transform:rotate(360deg); } }
+    </style>
     <script type="module" crossorigin src="/AI_Progress_Tracking/assets/index-CRKLZBNw.js"></script>
     <link rel="stylesheet" crossorigin href="/AI_Progress_Tracking/assets/index-TyXCz9j1.css">
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><div class="qr-boot"><div class="qr-boot-mark">M66</div><strong>Opening room upload</strong><span>Your QR location is already saved.</span><i></i></div></div>
   </body>
 </html>

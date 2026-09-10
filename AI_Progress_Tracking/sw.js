@@ -1,4 +1,4 @@
-const CACHE_NAME = 'siteflow-app-shell-v1';
+const CACHE_NAME = 'siteflow-app-shell-v2';
 const APP_ROOT = new URL('./', self.registration.scope).href;
 
 async function cacheAppShell() {
@@ -31,14 +31,34 @@ self.addEventListener('fetch', (event) => {
   const request = event.request;
   if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) return;
   if (request.mode === 'navigate') {
-    event.respondWith(fetch(request).then(async (response) => {
-      if (response.ok) await (await caches.open(CACHE_NAME)).put(APP_ROOT, response.clone());
-      return response;
-    }).catch(() => caches.match(APP_ROOT)));
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+      const cached = await cache.match(APP_ROOT);
+      const update = fetch(request, { cache: 'no-store' }).then(async (response) => {
+        if (!response.ok) throw new Error(`SiteFlow returned HTTP ${response.status}`);
+        await cache.put(APP_ROOT, response.clone());
+        return response;
+      });
+
+      if (cached) {
+        event.waitUntil(update.catch(() => {}));
+        return cached;
+      }
+
+      try {
+        return await update;
+      } catch {
+        return new Response(`<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>SiteFlow offline</title><style>body{margin:0;min-height:100vh;display:grid;place-content:center;padding:24px;background:#f4f1ea;color:#17231d;font:16px system-ui;text-align:center}button{margin:18px auto 0;padding:13px 20px;border:0;border-radius:9px;background:#126447;color:white;font-weight:700}</style><h1>Connection timed out</h1><p>SiteFlow has not been cached on this phone yet.<br>Reconnect, then tap retry once.</p><button onclick="location.reload()">Retry</button>`, {
+          status: 503,
+          headers: { 'Content-Type': 'text/html; charset=utf-8' },
+        });
+      }
+    })());
     return;
   }
   event.respondWith(caches.match(request).then((cached) => cached || fetch(request).then(async (response) => {
-    if (response.ok && response.status === 200) await (await caches.open(CACHE_NAME)).put(request, response.clone());
+    if (!response.ok) throw new Error(`SiteFlow asset returned HTTP ${response.status}`);
+    await (await caches.open(CACHE_NAME)).put(request, response.clone());
     return response;
   })));
 });
