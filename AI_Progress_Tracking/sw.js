@@ -1,4 +1,4 @@
-const CACHE_NAME = 'siteflow-app-shell-v3';
+const CACHE_NAME = 'siteflow-app-shell-v4';
 const APP_ROOT = new URL('./', self.registration.scope).href;
 const IS_LOCAL_PREVIEW = ['localhost', '127.0.0.1'].includes(self.location.hostname);
 
@@ -35,21 +35,14 @@ self.addEventListener('fetch', (event) => {
   if (request.mode === 'navigate') {
     event.respondWith((async () => {
       const cache = await caches.open(CACHE_NAME);
-      const cached = await cache.match(APP_ROOT);
-      const update = fetch(request, { cache: 'no-store' }).then(async (response) => {
+      try {
+        const response = await fetch(request, { cache: 'no-store' });
         if (!response.ok) throw new Error(`SiteFlow returned HTTP ${response.status}`);
         await cache.put(APP_ROOT, response.clone());
         return response;
-      });
-
-      if (cached) {
-        event.waitUntil(update.catch(() => {}));
-        return cached;
-      }
-
-      try {
-        return await update;
       } catch {
+        const cached = await cache.match(APP_ROOT);
+        if (cached) return cached;
         return new Response(`<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>SiteFlow offline</title><style>body{margin:0;min-height:100vh;display:grid;place-content:center;padding:24px;background:#f4f1ea;color:#17231d;font:16px system-ui;text-align:center}button{margin:18px auto 0;padding:13px 20px;border:0;border-radius:9px;background:#126447;color:white;font-weight:700}</style><h1>Connection timed out</h1><p>SiteFlow has not been cached on this phone yet.<br>Reconnect, then tap retry once.</p><button onclick="location.reload()">Retry</button>`, {
           status: 503,
           headers: { 'Content-Type': 'text/html; charset=utf-8' },
