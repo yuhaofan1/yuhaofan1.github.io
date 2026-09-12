@@ -1,5 +1,6 @@
-const CACHE_NAME = 'siteflow-app-shell-v2';
+const CACHE_NAME = 'siteflow-app-shell-v3';
 const APP_ROOT = new URL('./', self.registration.scope).href;
+const IS_LOCAL_PREVIEW = ['localhost', '127.0.0.1'].includes(self.location.hostname);
 
 async function cacheAppShell() {
   const cache = await caches.open(CACHE_NAME);
@@ -17,7 +18,7 @@ async function cacheAppShell() {
 }
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(cacheAppShell().then(() => self.skipWaiting()));
+  event.waitUntil((IS_LOCAL_PREVIEW ? Promise.resolve() : cacheAppShell()).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (event) => {
@@ -28,6 +29,7 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  if (IS_LOCAL_PREVIEW) return;
   const request = event.request;
   if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) return;
   if (request.mode === 'navigate') {
