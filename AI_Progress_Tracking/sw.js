@@ -1,4 +1,4 @@
-const CACHE_NAME = 'siteflow-app-shell-v4';
+const CACHE_NAME = 'siteflow-app-shell-v5';
 const APP_ROOT = new URL('./', self.registration.scope).href;
 const IS_LOCAL_PREVIEW = ['localhost', '127.0.0.1'].includes(self.location.hostname);
 
@@ -31,7 +31,12 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (IS_LOCAL_PREVIEW) return;
   const request = event.request;
-  if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) return;
+  const requestUrl = new URL(request.url);
+  if (request.method !== 'GET' || requestUrl.origin !== self.location.origin) return;
+  if (requestUrl.searchParams.has('_siteflow_version')) {
+    event.respondWith(fetch(request, { cache: 'no-store' }));
+    return;
+  }
   if (request.mode === 'navigate') {
     event.respondWith((async () => {
       const cache = await caches.open(CACHE_NAME);
