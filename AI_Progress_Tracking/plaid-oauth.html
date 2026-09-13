@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f4f1ea" />
+    <title>Returning to SiteFlow</title>
+    <style>
+      * { box-sizing:border-box; }
+      body { min-height:100vh; margin:0; display:grid; place-items:center; padding:24px; color:#17231d; background:#f4f1ea; font-family:system-ui,sans-serif; }
+      main { width:min(420px,100%); padding:28px; display:grid; justify-items:center; gap:10px; text-align:center; border:1px solid #d8d4ca; border-radius:16px; background:white; box-shadow:0 18px 50px #17231d14; }
+      b { width:48px; height:48px; display:grid; place-items:center; border-radius:13px; color:white; background:#126447; font-size:18px; }
+      h1 { margin:8px 0 0; font-size:20px; }
+      p { margin:0; color:#69736d; font-size:14px; line-height:1.5; }
+      i { width:28px; height:28px; margin-top:8px; border:3px solid #12644733; border-top-color:#126447; border-radius:50%; animation:spin .8s linear infinite; }
+      @keyframes spin { to { transform:rotate(360deg); } }
+    </style>
+    <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+  </head>
+  <body>
+    <main><b>M66</b><h1>Finishing bank connection</h1><p id="status">Returning securely from Chase to SiteFlow…</p><i></i></main>
+    <script>
+      (function () {
+        var linkToken = sessionStorage.getItem('siteflow-plaid-link-token');
+        var destination = './#/cost';
+        if (!linkToken || !window.Plaid) {
+          sessionStorage.setItem('siteflow-plaid-error', 'The Plaid authorization session expired. Start Connect Chase again.');
+          location.replace(destination);
+          return;
+        }
+        var handler = window.Plaid.create({
+          token: linkToken,
+          receivedRedirectUri: window.location.href,
+          onSuccess: function (publicToken, metadata) {
+            sessionStorage.setItem('siteflow-plaid-public-token', publicToken);
+            sessionStorage.setItem('siteflow-plaid-institution', metadata && metadata.institution ? metadata.institution.name : 'Chase');
+            location.replace(destination);
+          },
+          onExit: function (error) {
+            if (error) sessionStorage.setItem('siteflow-plaid-error', error.display_message || error.error_message || 'Bank authorization was not completed.');
+            location.replace(destination);
+          }
+        });
+        handler.open();
+      })();
+    </script>
+  </body>
+</html>
