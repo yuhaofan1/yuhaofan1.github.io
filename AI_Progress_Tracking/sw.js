@@ -1,4 +1,4 @@
-const CACHE_NAME = 'siteflow-app-shell-v5';
+const CACHE_NAME = 'siteflow-app-shell-v6';
 const APP_ROOT = new URL('./', self.registration.scope).href;
 const IS_LOCAL_PREVIEW = ['localhost', '127.0.0.1'].includes(self.location.hostname);
 
@@ -32,6 +32,8 @@ self.addEventListener('fetch', (event) => {
   if (IS_LOCAL_PREVIEW) return;
   const request = event.request;
   const requestUrl = new URL(request.url);
+  // Never persist private API responses, sessions, or signed media in the app-shell cache.
+  if (requestUrl.pathname.startsWith('/api/')) return;
   if (request.method !== 'GET' || requestUrl.origin !== self.location.origin) return;
   if (requestUrl.searchParams.has('_siteflow_version')) {
     event.respondWith(fetch(request, { cache: 'no-store' }));
